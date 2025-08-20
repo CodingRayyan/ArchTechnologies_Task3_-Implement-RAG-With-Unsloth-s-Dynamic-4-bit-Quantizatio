@@ -1,67 +1,6 @@
-# Core Streamlit and Web Framework
 streamlit
-
-# Transformers and Language Models
 transformers
 torch
-torchvision
-torchaudio
-
-# Hugging Face Hub and Tokenizers
-huggingface-hub
-tokenizers
-safetensors
-
-# Vector Database and RAG
 chromadb
-sentence-transformers
-
-# Data Processing and Utilities
 numpy
-pandas
-scipy
-
-# Optional: Accelerated Inference (if you have compatible hardware)
-# accelerate>=0.24.0
-# bitsandbytes>=0.41.0  # For 4-bit quantization
-
-# Text Processing and NLP
-nltk
-regex
-
-# HTTP and API utilities
-requests
-urllib3
-
-# Caching and Storage
-diskcache>
-pickle5; python_version < "3.8"
-
-# Optional: For better model performance
-# optimum>=1.13.0  # ONNX Runtime optimizations
-
-# Development and Debugging (optional)
-# ipython>=8.0.0
-# jupyter>=1.0.0
-
-# Security and SSL
-certifi
-charset-normalizer
-
-# Threading and Async (used by some components)
-threading-utils
-
-# Memory optimization
-psutil
-
-# Optional: For advanced embeddings
-# faiss-cpu>=1.7.4  # For faster similarity search
-# faiss-gpu>=1.7.4  # If you have CUDA GPU
-
-# Optional: For data visualization in sidebar
-# matplotlib>=3.7.0
-# seaborn>=0.12.0
-# plotly>=5.15.0
-
-# File handling and compression
-zipfile-deflate64
+tokenizers
