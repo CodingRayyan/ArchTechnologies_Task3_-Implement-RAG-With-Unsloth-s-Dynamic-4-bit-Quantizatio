@@ -4,6 +4,7 @@ st.set_page_config(page_title="RAG Chatbot", page_icon="🤖")
 import os
 import warnings
 warnings.filterwarnings("ignore")
+from chromadb.config import Settings
 
 # -------------------------------
 # Background Image
@@ -126,13 +127,12 @@ def load_model(model_name):
                 pipe = pipeline(
                     "text-generation",
                     model=model_name,
-                    device=-1,  # Force CPU
+                    device=-1,
                     return_full_text=False
                 )
             return pipe
     except Exception as e:
         st.error(f"Error loading model: {e}")
-        # Fallback to smallest model
         return pipeline("text-generation", model="distilgpt2", device=-1, return_full_text=False)
 
 # -------------------------------
@@ -141,10 +141,13 @@ def load_model(model_name):
 @st.cache_resource
 def init_chromadb():
     try:
-        client = chromadb.Client()  # Use in-memory client for Streamlit Cloud
+        client = chromadb.Client(Settings(
+            persist_directory=None,
+            is_persistent=False
+        ))  # Use in-memory client for Streamlit Cloud
+
         collection = client.get_or_create_collection("rag_collection")
         
-        # Add some sample documents if collection is empty
         if collection.count() == 0:
             sample_docs = [
                 "Artificial Intelligence is transforming various industries.",
@@ -169,24 +172,23 @@ pipe = load_model(selected_model_path)
 collection = init_chromadb()
 
 # -------------------------------
-# RAG Query Function (Simplified for Streamlit Cloud)
+# RAG Query Function
 # -------------------------------
 def rag_query(question, max_tokens=80):
-    if not collection:
-        return "Database not available. Please check the setup."
-    
     try:
-        # Retrieve context
+        if not collection:
+            # fallback: only use the model
+            response = pipe(question, max_new_tokens=max_tokens, temperature=0.7, do_sample=True)
+            return response[0]["generated_text"].strip()
+
         results = collection.query(query_texts=[question], n_results=3)
         context = ""
         
         if results and results.get("documents") and results["documents"][0]:
             context = " ".join(results["documents"][0])
-        
         if not context.strip():
             context = "No relevant context found."
         
-        # Create simple prompt
         prompt = f"""Answer this question based on the context provided.
 
 Context: {context}
@@ -195,7 +197,6 @@ Question: {question}
 
 Answer:"""
         
-        # Generate response
         response = pipe(
             prompt,
             max_new_tokens=max_tokens,
@@ -206,7 +207,6 @@ Answer:"""
         
         if response and len(response) > 0:
             answer = response[0]["generated_text"].strip()
-            # Clean up the answer
             if len(answer) > 200:
                 sentences = answer.split('.')
                 if len(sentences) > 1:
@@ -224,7 +224,6 @@ Answer:"""
 st.title("🤖 RAG Chatbot - Developed by Rayyan Ahmed")
 st.markdown(f"**Current Model:** {selected_model_name}")
 
-# Display status
 col1, col2, col3 = st.columns(3)
 with col1:
     st.metric("Status", "✅ Ready" if pipe and collection else "❌ Error")
@@ -232,14 +231,12 @@ with col2:
     st.metric("Device", device.upper())
 with col3:
     if collection:
-        doc_count = collection.count()
-        st.metric("Documents", doc_count)
+        st.metric("Documents", collection.count())
     else:
         st.metric("Documents", "N/A")
 
 st.write("Ask me anything! I'll search the knowledge base and generate an answer.")
 
-# Chat interface
 user_query = st.text_input(
     "💬 Enter your question:",
     placeholder="What would you like to know about AI, ML, or programming?",
@@ -260,21 +257,18 @@ if ask_button and user_query.strip():
             st.success("✅ Answer:")
             st.write(answer)
             
-            # Show retrieved context
             if collection:
                 with st.expander("📚 Retrieved Context"):
                     results = collection.query(query_texts=[user_query], n_results=3)
                     if results and results.get("documents"):
                         for i, doc in enumerate(results["documents"][0], 1):
                             st.write(f"**{i}.** {doc}")
-                            
         except Exception as e:
             st.error(f"An error occurred: {e}")
             
 elif ask_button:
     st.warning("⚠️ Please enter a question.")
 
-# Add some example questions
 with st.expander("💡 Try these example questions"):
     examples = [
         "What is Artificial Intelligence?",
@@ -288,7 +282,6 @@ with st.expander("💡 Try these example questions"):
         if st.button(example, key=f"example_{example[:10]}"):
             st.rerun()
 
-# Footer
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #888;'>"
