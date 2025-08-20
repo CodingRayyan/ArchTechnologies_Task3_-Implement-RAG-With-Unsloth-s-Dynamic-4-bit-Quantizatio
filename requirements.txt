@@ -1,9 +1,0 @@
-streamlit
-transformers
-torch
-chromadb
-numpy
-pandas
-huggingface-hub
-tokenizers
-sentencepiece
