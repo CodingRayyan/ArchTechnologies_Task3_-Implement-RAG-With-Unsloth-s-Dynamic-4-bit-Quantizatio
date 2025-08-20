@@ -286,7 +286,6 @@ with st.expander("💡 Try these example questions"):
     
     for example in examples:
         if st.button(example, key=f"example_{example[:10]}"):
-            st.experimental_set_query_params(q=example)
             st.rerun()
 
 # Footer
