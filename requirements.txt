@@ -4,3 +4,5 @@ torch
 chromadb>=0.5.4
 tokenizers
 numpy
+pysqlite3-binary
+
