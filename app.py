@@ -4,7 +4,6 @@ st.set_page_config(page_title="RAG Chatbot", page_icon="🤖")
 import os
 import warnings
 warnings.filterwarnings("ignore")
-from chromadb.config import Settings
 
 # -------------------------------
 # Background Image
@@ -141,10 +140,7 @@ def load_model(model_name):
 @st.cache_resource
 def init_chromadb():
     try:
-        client = chromadb.Client(Settings(
-            persist_directory=None,
-            is_persistent=False
-        ))  # Use in-memory client for Streamlit Cloud
+        client = chromadb.Client()  # no Settings needed anymore
 
         collection = client.get_or_create_collection("rag_collection")
         
@@ -167,6 +163,7 @@ def init_chromadb():
         st.error(f"ChromaDB initialization error: {e}")
         return None
 
+
 # Load model and database
 pipe = load_model(selected_model_path)
 collection = init_chromadb()
@@ -174,7 +171,7 @@ collection = init_chromadb()
 # -------------------------------
 # RAG Query Function
 # -------------------------------
-def rag_query(question, max_tokens=80):
+def rag_query(question, max_tokens=50):
     try:
         if not collection:
             # fallback: only use the model
@@ -289,3 +286,4 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True
 )
+
